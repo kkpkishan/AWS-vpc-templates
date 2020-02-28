@@ -11,8 +11,11 @@
             <li>Single VPC</li>
             <li>2 Public Subnets</li>
             <li>2 Private Subnets</li>
+            <li>2 ALB Subnets</li>
+            <li>1 NAT Subnets</li>
             <li>Public Route Table</li>
             <li>Private Route Table</li>
+            <li>NAT Route Table</li>
             <li>Internet Gateway</li>
             <ul>
               <li>Attached to the Public Route Table</li>
