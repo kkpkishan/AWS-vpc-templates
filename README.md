@@ -1,7 +1,7 @@
 # AWS-VPC Full CloudFormation Templates
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="">VPC (Vir://github.com/kkpkishan/aws-full-vpc-cloudformation-templates.git"> FULL VPC (Virtual Private Cloud)</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="github.com/kkpkishan/aws-full-vpc-cloudformation-templates.git"> FULL VPC (Virtual Private Cloud)</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
