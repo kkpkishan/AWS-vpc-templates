@@ -21,8 +21,5 @@
              <ul>
               <li>Attached to the Private Route Table</li>
             </ul>
-
-           </ol>
-        </td>
-</table/
+               </table>
 
