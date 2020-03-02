@@ -24,5 +24,18 @@
              <ul>
               <li>Attached to the Private Route Table</li>
             </ul>
-               </table>
+                      <td nowrap width="200" valign="top">
+            <table>
+                <tr>
+                    <th align="left">Launch</th>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?&templateURL=https://electromech-cloudformation-templates.s3.ap-south-1.amazonaws.com/mysql-rds.yml" target="_blank"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr> 
+ </table>
 
