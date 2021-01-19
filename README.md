@@ -23,7 +23,7 @@
             <li>zone-legacy</li>
             <li>zone-private</li>
             <li>zone-public</li>
-            
+            <tr>
                       <td nowrap width="200" valign="top">
             <table>
                 <tr>
