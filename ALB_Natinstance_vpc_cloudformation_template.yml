@@ -47,7 +47,49 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
     Type: String
     Default: 10.192.21.0/24
+  KeyName:
+    Description: 'Optional key pair of the ec2-user to establish a SSH connection to the SSH NAT instances host/instance.'
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: ''
+  InstanceType:
+    Description: 'Instance type of the NAT instances host/instance.'
+    Type: String
+    Default: 't2.nano'
 
+Mappings:
+  RegionMap:
+    'ap-south-1':
+      AMI: 'ami-0ed82e06393f32328'
+    'eu-west-3':
+      AMI: 'ami-0aa022836aa1a84ce'
+    'eu-west-2':
+      AMI: 'ami-00fe444797752bd96'
+    'eu-north-1':
+      AMI: 'ami-07c8a7b55e6b1e6d2'
+    'eu-west-1':
+      AMI: 'ami-06558a91dd7f36ac2'
+    'ap-northeast-2':
+      AMI: 'ami-08831b9f8088641d3'
+    'me-south-1':
+      AMI: 'ami-0a91b33f1e51eafbb'
+    'ap-northeast-1':
+      AMI: 'ami-014061df9d813ea90'
+    'ca-central-1':
+      AMI: 'ami-002f38f85a23ad92c'
+    'ap-southeast-1':
+      AMI: 'ami-037e3d0f6fefc2f5a'
+    'ap-southeast-2':
+      AMI: 'ami-07783c0ae3bb5ad8b'
+    'eu-central-1':
+      AMI: 'ami-0e8ddd432cc6047f6'
+    'us-east-1':
+      AMI: 'ami-0d8b28f23a8c6709e'
+    'us-east-2':
+      AMI: 'ami-0d59f7cf5843090c0'
+    'us-west-1':
+      AMI: 'ami-01951e249d893c7ea'
+    'us-west-2':
+      AMI: 'ami-0a8fddfa5a937928e'
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -149,19 +191,6 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
 
-  NatGateway1EIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-
-
-  NatGateway1:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGateway1EIP.AllocationId
-      SubnetId: !Ref NatSubnet
-
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -254,7 +283,7 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable1
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway1
+      InstanceId: !Ref Natinstance
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -275,7 +304,7 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway1
+      InstanceId: !Ref Natinstance
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -289,6 +318,45 @@ Resources:
       GroupName: "no-ingress-sg"
       GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: !Ref 'AWS::StackName'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: '0.0.0.0/0'
+      VpcId: !Ref VPC
+  Natinstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      InstanceType: !Ref InstanceType
+      SourceDestCheck: false
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Natinstance
+      NetworkInterfaces:
+        - GroupSet:
+            - !Ref SecurityGroup
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref NatSubnet
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          sudo sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/g'  /etc/sysctl.conf
+          sudo yum install -y perl-Switch perl-DateTime perl-Sys-Syslog perl-LWP-Protocol-https perl-Digest-SHA.x86_64
+          sudo unzip CloudWatchMonitoringScripts-1.2.2.zip && rm -rf CloudWatchMonitoringScripts-1.2.2.zip
+          sudo echo "*/5 * * * * ~/aws-scripts-mon/mon-put-instance-data.pl  --mem-util --swap-util --disk-space-util  --disk-path=/ --from-cron" >> CloudWatch
+          sudo crontab CloudWatch
+          sudo rm -rf CloudWatch
+  NATEIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      InstanceId: !Ref Natinstance
 
 Outputs:
   VPC:
@@ -391,6 +459,21 @@ Outputs:
     Value: !Ref PrivateSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-SubnetBPrivate'
+  Natinstance:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref Natinstance
+    Export:
+      Name: !Sub '${AWS::StackName}-Natinstance'
+  NATEIP:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref NATEIP
+    Export:
+      Name: !Sub '${AWS::StackName}-NATEIP'
+  SecurityGroup:
+    Description: A reference to the private subnet in the NAT 1st Availability Zone
+    Value: !Ref SecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroup'
   NoIngressSecurityGroup:
     Description: Security group with no ingress rule
     Value: !Ref NoIngressSecurityGroup

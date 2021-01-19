@@ -1,7 +1,7 @@
-# AWS-VPC Full CloudFormation Templates
+# AWS-VPC  CloudFormation Templates
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="https://github.com/kkpkishan/aws-full-vpc-cloudformation-templates.git"> FULL VPC (Virtual Private Cloud)</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="https://github.com/kkpkishan/aws-vpc-cloudformation-templates.git"> FULL VPC (Virtual Private Cloud)</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
@@ -9,21 +9,21 @@
            <h6>Create Details</h6>
            <ol>
             <li>Single VPC</li>
-            <li>2 Public Subnets</li>
-            <li>2 Private Subnets</li>
-            <li>2 ALB Subnets</li>
-            <li>1 NAT Subnets</li>
-            <li>Public Route Table</li>
-            <li>Private Route Table</li>
-            <li>NAT Route Table</li>
-            <li>Internet Gateway</li>
-            <ul>
-              <li>Attached to the Public Route Table</li>
-            </ul>
-            <li>NAT Gatway</li>
-             <ul>
-              <li>Attached to the Private Route Table</li>
-            </ul>
+            <li>3_AZ_ALB_Natinstance_vpc_cloudformation_template</li>
+            <li>ALB_Natinstance_vpc_cloudformation_template</li>
+            <li>3_AZ_ALB_NAT_vpc_cloudformation_template</li>
+            <li>3_AZ_Public_vpc_cloudformation_template</li>
+            <li>ALB_NAT_vpc_cloudformation_template</li>
+            <li>Public_vpc_cloudformation_template</li>
+            <li>vpc-endpoint-dynamodb</li>
+            <li>vpc-endpoint-s3</li>
+            <li>vpc-endpoint</li>
+            <li>vpc-flow-logs-s3</li>
+            <li>vpc-nat-instance</li>
+            <li>zone-legacy</li>
+            <li>zone-private</li>
+            <li>zone-public</li>
+            
                       <td nowrap width="200" valign="top">
             <table>
                 <tr>

@@ -23,6 +23,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
     Default: 10.192.11.0/24
+  PublicSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.12.0/24
   NatSubnetCIDR:
     Description: Please enter the IP range (CIDR notation) for the NAT Gateway subnet in the  Availability Zone
     Type: String
@@ -37,6 +41,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
     Default: 10.192.51.0/24
+  ALBSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.52.0/24
   
   PrivateSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
@@ -47,6 +55,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
     Type: String
     Default: 10.192.21.0/24
+  PrivateSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.22.0/24
 
 Resources:
   VPC:
@@ -93,6 +105,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ3)
   
   NatSubnet:
     Type: AWS::EC2::Subnet
@@ -126,6 +148,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} ALB Subnet (AZ2)
+  ALBSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref ALBSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} ALB Subnet (AZ3)
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -148,6 +180,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ3)
 
   NatGateway1EIP:
     Type: AWS::EC2::EIP
@@ -190,6 +232,12 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
 
   ALBRouteTable:
     Type: AWS::EC2::RouteTable
@@ -218,6 +266,11 @@ Resources:
     Properties:
       RouteTableId: !Ref ALBRouteTable
       SubnetId: !Ref ALBSubnet2
+  ALBSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ALBRouteTable
+      SubnetId: !Ref ALBSubnet3
 
   NATRouteTable:
     Type: AWS::EC2::RouteTable
@@ -282,6 +335,26 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref PrivateSubnet2
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-PrivateRoutes(AZ3)
+
+  DefaultPrivateRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      SubnetId: !Ref PrivateSubnet3
 
   NoIngressSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -298,12 +371,12 @@ Outputs:
       Name: !Sub '${AWS::StackName}-VPC'
   AZs: # Better name would be NumberOfAZs, but we keep the name for backward compatibility
     Description: 'Number of AZs'
-    Value: 2
+    Value: 3
     Export:
       Name: !Sub '${AWS::StackName}-AZs'
   AZList:  # Better name would be AZs, but the name was already used
     Description: 'List of AZs'
-    Value: !Join [',', [!Select [0, !GetAZs ''], !Select [1, !GetAZs '']]]
+    Value: !Join [',', [!Select [0, !GetAZs ''], !Select [1, !GetAZs ''], !Select [2, !GetAZs '']]]
     Export:
       Name: !Sub '${AWS::StackName}-AZList'
   AZA:
@@ -316,6 +389,11 @@ Outputs:
     Value: !Select [1, !GetAZs '']
     Export:
       Name: !Sub '${AWS::StackName}-AZB'  
+  AZC:
+    Description: 'AZ of C'
+    Value: !Select [2, !GetAZs '']
+    Export:
+      Name: !Sub '${AWS::StackName}-AZC'  
   CidrBlock:
     Description: 'The set of IP addresses for the VPC.'
     Value: !GetAtt 'VPC.CidrBlock'
@@ -328,22 +406,22 @@ Outputs:
       Name: !Sub '${AWS::StackName}-InternetGateway'
   SubnetsPublic:
     Description: 'Subnets public.'
-    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2]]
+    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
     Export:
       Name: !Sub '${AWS::StackName}-SubnetsPublic'
   SubnetsPrivate:
     Description: 'Subnets private.'
-    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3]]
     Export:
       Name: !Sub '${AWS::StackName}-SubnetsPrivate'
   PublicSubnets:
     Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3 ]]
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnets'
   PrivateSubnets:
     Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3 ]]
     Export:
       Name: !Sub '${AWS::StackName}-PrivateSubnets'
   RouteTablesPrivate:
@@ -366,9 +444,14 @@ Outputs:
     Value: !Ref PublicSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-SubnetBPublic'
+  SubnetCPublic:
+    Description: A reference to the public subnet in the 3nd Availability Zone
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetCPublic'
   ALBSubnets:
     Description: A list of the ALB subnets
-    Value: !Join [ ",", [ !Ref ALBSubnet1, !Ref ALBSubnet2 ]]
+    Value: !Join [ ",", [ !Ref ALBSubnet1, !Ref ALBSubnet2, !Ref ALBSubnet3 ]]
   
   ALBSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
@@ -377,6 +460,9 @@ Outputs:
   ALBSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref ALBSubnet2
+  ALBSubnet3:
+    Description: A reference to the public subnet in the 3nd Availability Zone
+    Value: !Ref ALBSubnet3
   NatSubnet:
     Description: A reference to the NAT subnet in the 1nd Availability Zone
     Value: !Ref NatSubnet
@@ -391,6 +477,11 @@ Outputs:
     Value: !Ref PrivateSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-SubnetBPrivate'
+  SubnetCPrivate:
+    Description: A reference to the private subnet in the 3nd Availability Zone
+    Value: !Ref PrivateSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetCPrivate'
   NoIngressSecurityGroup:
     Description: Security group with no ingress rule
     Value: !Ref NoIngressSecurityGroup
