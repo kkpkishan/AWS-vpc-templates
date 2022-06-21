@@ -452,7 +452,8 @@ Outputs:
   ALBSubnets:
     Description: A list of the ALB subnets
     Value: !Join [ ",", [ !Ref ALBSubnet1, !Ref ALBSubnet2, !Ref ALBSubnet3 ]]
-  
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBSubnets'
   ALBSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref ALBSubnet1
