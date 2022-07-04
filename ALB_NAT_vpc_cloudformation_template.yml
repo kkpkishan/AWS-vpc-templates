@@ -369,18 +369,23 @@ Outputs:
   ALBSubnets:
     Description: A list of the ALB subnets
     Value: !Join [ ",", [ !Ref ALBSubnet1, !Ref ALBSubnet2 ]]
-  
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBSubnets'  
   ALBSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref ALBSubnet1
-
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBSubnet1'
   ALBSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref ALBSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBSubnet2'
   NatSubnet:
     Description: A reference to the NAT subnet in the 1nd Availability Zone
     Value: !Ref NatSubnet
-
+    Export:
+      Name: !Sub '${AWS::StackName}-NatSubnet'
   SubnetAPrivate:
     Description: A reference to the private subnet in the 1st Availability Zone
     Value: !Ref PrivateSubnet1
@@ -394,3 +399,5 @@ Outputs:
   NoIngressSecurityGroup:
     Description: Security group with no ingress rule
     Value: !Ref NoIngressSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-NoIngressSecurityGroup'
