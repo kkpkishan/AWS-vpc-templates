@@ -23,6 +23,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
     Default: 10.192.11.0/24
+  PublicSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.12.0/24
   NatSubnetCIDR:
     Description: Please enter the IP range (CIDR notation) for the NAT Gateway subnet in the  Availability Zone
     Type: String
@@ -37,6 +41,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
     Default: 10.192.51.0/24
+  ALBSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.52.0/24
   
   PrivateSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
@@ -47,6 +55,10 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
     Type: String
     Default: 10.192.21.0/24
+  PrivateSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the third Availability Zone
+    Type: String
+    Default: 10.192.22.0/24
   KeyName:
     Description: 'Optional key pair of the ec2-user to establish a SSH connection to the SSH NAT instances host/instance.'
     Type: 'AWS::EC2::KeyPair::KeyName'
@@ -54,42 +66,42 @@ Parameters:
   InstanceType:
     Description: 'Instance type of the NAT instances host/instance.'
     Type: String
-    Default: 't2.nano'
+    Default: 't4g.micro'
 
 Mappings:
   RegionMap:
     'ap-south-1':
-      AMI: 'ami-0ed82e06393f32328'
+      AMI: 'ami-0e0aaf29e73155b91'
     'eu-west-3':
-      AMI: 'ami-0aa022836aa1a84ce'
+      AMI: 'ami-00f13602fa9acface'
     'eu-west-2':
-      AMI: 'ami-00fe444797752bd96'
+      AMI: 'ami-08ebecb25179560f7'
     'eu-north-1':
-      AMI: 'ami-07c8a7b55e6b1e6d2'
+      AMI: 'ami-0fbd1ecdaa0af2276'
     'eu-west-1':
-      AMI: 'ami-06558a91dd7f36ac2'
+      AMI: 'ami-0a6b5206d1730bdce'
     'ap-northeast-2':
-      AMI: 'ami-08831b9f8088641d3'
+      AMI: 'ami-05d1b0b938144501e'
     'me-south-1':
-      AMI: 'ami-0a91b33f1e51eafbb'
+      AMI: 'ami-099948c9b936d71a2'
     'ap-northeast-1':
-      AMI: 'ami-014061df9d813ea90'
+      AMI: 'ami-004332b441f90509b'
     'ca-central-1':
-      AMI: 'ami-002f38f85a23ad92c'
+      AMI: 'ami-0e4208b856d700843'
     'ap-southeast-1':
-      AMI: 'ami-037e3d0f6fefc2f5a'
+      AMI: 'ami-0ba00895a8997fcd0'
     'ap-southeast-2':
-      AMI: 'ami-07783c0ae3bb5ad8b'
+      AMI: 'ami-007b3582fa22625ab'
     'eu-central-1':
-      AMI: 'ami-0e8ddd432cc6047f6'
+      AMI: 'ami-0ceb85bb30095410b'
     'us-east-1':
-      AMI: 'ami-0d8b28f23a8c6709e'
+      AMI: 'ami-00bf5f1c358708486'
     'us-east-2':
-      AMI: 'ami-0d59f7cf5843090c0'
+      AMI: 'ami-03e57de632660544c'
     'us-west-1':
-      AMI: 'ami-01951e249d893c7ea'
+      AMI: 'ami-0825c6b3598e9754d'
     'us-west-2':
-      AMI: 'ami-0a8fddfa5a937928e'
+      AMI: 'ami-08e93a9522bbe6df6'
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -135,6 +147,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ3)
   
   NatSubnet:
     Type: AWS::EC2::Subnet
@@ -168,6 +190,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} ALB Subnet (AZ2)
+  ALBSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref ALBSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} ALB Subnet (AZ3)
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -191,7 +223,16 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
 
-
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ3)
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -219,6 +260,11 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
 
   ALBRouteTable:
     Type: AWS::EC2::RouteTable
@@ -247,6 +293,11 @@ Resources:
     Properties:
       RouteTableId: !Ref ALBRouteTable
       SubnetId: !Ref ALBSubnet2
+  ALBSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ALBRouteTable
+      SubnetId: !Ref ALBSubnet3
 
   NATRouteTable:
     Type: AWS::EC2::RouteTable
@@ -311,7 +362,25 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref PrivateSubnet2
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-PrivateRoutes(AZ3)
+  DefaultPrivateRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      InstanceId: !Ref Natinstance
 
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      SubnetId: !Ref PrivateSubnet3
   NoIngressSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -351,16 +420,24 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash
-          sudo sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/g'  /etc/sysctl.conf
-          sudo yum install -y perl-Switch perl-DateTime perl-Sys-Syslog perl-LWP-Protocol-https perl-Digest-SHA.x86_64
-          sudo unzip CloudWatchMonitoringScripts-1.2.2.zip && rm -rf CloudWatchMonitoringScripts-1.2.2.zip
-          sudo echo "*/5 * * * * ~/aws-scripts-mon/mon-put-instance-data.pl  --mem-util --swap-util --disk-space-util  --disk-path=/ --from-cron" >> CloudWatch
-          sudo crontab CloudWatch
-          sudo rm -rf CloudWatch
+          sudo yum update -y
+          sudo echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+          sudo echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
+          sudo echo "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
+          sudo echo "kernel.sysrq = 0" >> /etc/sysctl.conf
+          sudo echo "kernel.core_uses_pid = 1" >> /etc/sysctl.conf
+          sudo echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf
+          sudo sysctl -p
+          sudo /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+          sudo yum install iptables-services -y
+          sudo service iptables save
   NATEIP:
     Type: 'AWS::EC2::EIP'
     Properties:
       InstanceId: !Ref Natinstance
+      Tags:
+        - Key: Name
+          Value: Natinstance
 
 Outputs:
   VPC:
@@ -370,12 +447,12 @@ Outputs:
       Name: !Sub '${AWS::StackName}-VPC'
   AZs: # Better name would be NumberOfAZs, but we keep the name for backward compatibility
     Description: 'Number of AZs'
-    Value: 2
+    Value: 3
     Export:
       Name: !Sub '${AWS::StackName}-AZs'
   AZList:  # Better name would be AZs, but the name was already used
     Description: 'List of AZs'
-    Value: !Join [',', [!Select [0, !GetAZs ''], !Select [1, !GetAZs '']]]
+    Value: !Join [',', [!Select [0, !GetAZs ''], !Select [1, !GetAZs ''], !Select [2, !GetAZs '']]]
     Export:
       Name: !Sub '${AWS::StackName}-AZList'
   AZA:
@@ -388,6 +465,11 @@ Outputs:
     Value: !Select [1, !GetAZs '']
     Export:
       Name: !Sub '${AWS::StackName}-AZB'  
+  AZC:
+    Description: 'AZ of C'
+    Value: !Select [2, !GetAZs '']
+    Export:
+      Name: !Sub '${AWS::StackName}-AZC' 
   CidrBlock:
     Description: 'The set of IP addresses for the VPC.'
     Value: !GetAtt 'VPC.CidrBlock'
@@ -400,22 +482,22 @@ Outputs:
       Name: !Sub '${AWS::StackName}-InternetGateway'
   SubnetsPublic:
     Description: 'Subnets public.'
-    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2]]
+    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
     Export:
       Name: !Sub '${AWS::StackName}-SubnetsPublic'
   SubnetsPrivate:
     Description: 'Subnets private.'
-    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3]]
     Export:
       Name: !Sub '${AWS::StackName}-SubnetsPrivate'
   PublicSubnets:
     Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3 ]]
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnets'
   PrivateSubnets:
     Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3 ]]
     Export:
       Name: !Sub '${AWS::StackName}-PrivateSubnets'
   RouteTablesPrivate:
@@ -438,6 +520,11 @@ Outputs:
     Value: !Ref PublicSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-SubnetBPublic'
+  SubnetCPublic:
+    Description: A reference to the public subnet in the 3nd Availability Zone
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetCPublic'
   ALBSubnets:
     Description: A list of the ALB subnets
     Value: !Join [ ",", [ !Ref ALBSubnet1, !Ref ALBSubnet2 ]]
@@ -453,6 +540,11 @@ Outputs:
     Value: !Ref ALBSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-ALBSubnet2'
+  ALBSubnet3:
+    Description: A reference to the public subnet in the 3nd Availability Zone
+    Value: !Ref ALBSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBSubnet3'
   NatSubnet:
     Description: A reference to the NAT subnet in the 1nd Availability Zone
     Value: !Ref NatSubnet
@@ -468,6 +560,11 @@ Outputs:
     Value: !Ref PrivateSubnet2
     Export:
       Name: !Sub '${AWS::StackName}-SubnetBPrivate'
+  SubnetCPrivate:
+    Description: A reference to the private subnet in the 3nd Availability Zone
+    Value: !Ref PrivateSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetCPrivate'
   Natinstance:
     Description: A reference to the private subnet in the 1st Availability Zone
     Value: !Ref Natinstance
