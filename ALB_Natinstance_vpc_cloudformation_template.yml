@@ -332,11 +332,39 @@ Resources:
         ToPort: -1
         CidrIp: !Ref VpcCIDR
       VpcId: !Ref VPC
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-Nat-Role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Nat-Role'
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${AWS::StackName}-Nat-Role'
+      Path: "/"
+      Roles:
+        - !Ref InstanceRole
   Natinstance:
     Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
       InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
       SourceDestCheck: false
       KeyName: !Ref KeyName
       Tags:
@@ -488,3 +516,13 @@ Outputs:
     Value: !Ref NoIngressSecurityGroup
     Export:
       Name: !Sub '${AWS::StackName}-NoIngressSecurityGroup'
+  InstanceRoleName: 
+    Description: Cloudwatch-SSM Role
+    Value: !Ref InstanceRole 
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceRoleName' 
+  InstanceRoleArn: 
+    Description: Cloudwatch-SSM Role Arn
+    Value: !GetAtt InstanceRole.Arn 
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceRoleArn'
