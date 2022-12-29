@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'VPC: Interface Endpoint'
+Description: 'VPC: Interface Endpoint  template'
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
@@ -22,16 +22,21 @@ Metadata:
       Parameters:
       - ParentVPCStack
       - ParentClientStack
+      - ParentAlertStack
     - Label:
         default: 'Endpoint Parameters'
       Parameters:
       - ServiceName
 Parameters:
   ParentVPCStack:
-    Description: 'Stack name of parent VPC stack based on ALB_NAT_vpc_cloudformation_template.yml template.'
+    Description: 'Stack name of parent VPC stack based on vpc-*azs.yaml template.'
     Type: String
   ParentClientStack:
     Description: 'Optional stack name of parent client stack based on client-sg.yaml template.'
+    Type: String
+    Default: ''
+  ParentAlertStack:
+    Description: 'Optional but recommended stack name of parent alert stack based on alert.yaml template.'
     Type: String
     Default: ''
   ServiceName:
@@ -39,18 +44,32 @@ Parameters:
     Type: String
     AllowedValues: # generate list with aws --region us-east-1 ec2 describe-vpc-endpoint-services --query 'ServiceDetails[].ServiceName'
     - 'access-analyzer'
+    - account
     - 'acm-pca'
+    - 'airflow.api'
+    - 'airflow.env'
+    - 'airflow.ops'
+    - 'app-integrations'
     - 'application-autoscaling'
     - 'appmesh-envoy-management'
+    - apprunner
     - 'appstream.api'
     - 'appstream.streaming'
+    - aps
+    - 'aps-workspaces'
     - athena
+    - auditmanager
     - autoscaling
     - 'autoscaling-plans'
     - awsconnector
+    - backup
+    - billingconductor
+    - braket
     - cassandra
+    - 'cassandra-fips'
     - clouddirectory
     - cloudformation
+    - cloudhsmv2
     - cloudtrail
     - 'codeartifact.api'
     - 'codeartifact.repositories'
@@ -58,10 +77,23 @@ Parameters:
     - 'codebuild-fips'
     - codecommit
     - 'codecommit-fips'
+    - codedeploy
+    - 'codedeploy-commands-secure'
+    - 'codeguru-profiler'
+    - 'codeguru-reviewer'
     - codepipeline
+    - 'codestar-connections.api'
+    - comprehend
+    - comprehendmedical
     - config
+    - databrew
     - dataexchange
     - datasync
+    - 'devops-guru'
+    - dms
+    - 'dms-fips'
+    - drs
+    - ds
     - ebs
     - ec2
     - ec2messages
@@ -71,47 +103,115 @@ Parameters:
     - 'ecs-agent'
     - 'ecs-telemetry'
     - 'elastic-inference.runtime'
+    - elasticache
+    - 'elasticache-fips'
     - elasticbeanstalk
     - 'elasticbeanstalk-health'
     - elasticfilesystem
     - 'elasticfilesystem-fips'
     - elasticloadbalancing
     - elasticmapreduce
-    - email-smtp # https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-set-up-vpc-endpoints.html
+    - 'email-smtp'
+    - 'emr-containers'
     - events
+    - evidently
+    - 'evidently-dataplane'
     - 'execute-api'
+    - finspace
+    - 'finspace-api'
+    - fis
+    - forecast
+    - 'forecast-fips'
+    - forecastquery
+    - 'forecastquery-fips'
+    - frauddetector
     - 'git-codecommit'
     - 'git-codecommit-fips'
     - glue
+    - grafana
+    - greengrass
+    - groundstation
+    - healthlake
+    - imagebuilder
+    - inspector2
+    - 'iot.data'
+    - 'iot.fleethub.api'
+    - 'iotsitewise.api'
+    - 'iotsitewise.data'
+    - 'iotwireless.api'
+    - kendra
     - 'kinesis-firehose'
     - 'kinesis-streams'
     - kms
+    - lakeformation
+    - lambda
+    - 'license-manager'
+    - 'license-manager-fips'
     - logs
+    - lookoutequipment
+    - lookoutmetrics
+    - lookoutvision
+    - 'lorawan.cups'
+    - 'lorawan.lns'
+    - macie2
+    - mediaconnect
+    - 'memory-db'
+    - 'memorydb-fips'
+    - mgn
+    - 'migrationhub-strategy'
+    - 'models-v2-lex'
     - monitoring
+    - nimble
+    - profile
+    - proton
     - 'qldb.session'
+    - rds
     - 'rds-data'
+    - redshift
+    - 'redshift-data'
+    - 'redshift-fips'
     - rekognition
     - 'rekognition-fips'
+    - rum
+    - 'rum-dataplane'
+    - 'runtime-v2-lex'
     - 'sagemaker.api'
+    - 'sagemaker.featurestore-runtime'
     - 'sagemaker.runtime'
     - 'sagemaker.runtime-fips'
     - secretsmanager
+    - securityhub
     - servicecatalog
+    - 'servicecatalog-appregistry'
     - sms
     - 'sms-fips'
+    - 'snow-device-management'
     - sns
     - sqs
     - ssm
+    - 'ssm-contacts'
+    - 'ssm-incidents'
     - ssmmessages
     - states
     - storagegateway
     - sts
+    - 'sync-states'
     - synthetics
+    - textract
+    - 'textract-fips'
+    - 'timestream.ingest-cell2'
+    - 'timestream.query-cell2'
+    - transcribe
+    - transcribestreaming
     - transfer
     - 'transfer.server'
+    - translate
+    - voiceid
     - workspaces
+    - xray
 Conditions:
   HasParentClientStack: !Not [!Equals [!Ref ParentClientStack, '']]
+  HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
   UseEmailSMTP: !Equals [!Ref ServiceName, 'email-smtp']
 Resources:
   SecurityGroup:
@@ -182,13 +282,92 @@ Resources:
       SubnetIds: !Split [',', {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetsPrivate'}]
       VpcEndpointType: Interface
       VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+  AlarmEndpointPacketsDropped:
+    Condition: HasAlertTopic
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: !Sub 'VPC Interface endpoint ${ServiceName} dropped packets. This could indicate that the endpoint or endpoint service is unhealthy.'
+      Namespace: 'AWS/PrivateLinkEndpoints'
+      MetricName: PacketsDropped
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      TreatMissingData: notBreaching
+      AlarmActions:
+      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
+      Dimensions:
+      - Name: 'Endpoint Type'
+        Value: Interface
+      - Name: 'Service Name'
+        Value: !Sub 'com.amazonaws.${AWS::Region}.${ServiceName}'
+      - Name: 'VPC Endpoint Id'
+        Value: !Ref Endpoint
+      - Name: 'VPC Id'
+        Value: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+  AlarmEndpointRstPacketsReceived:
+    Condition: HasAlertTopic
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: !Sub 'VPC Interface endpoint ${ServiceName} received RST packets. This could indicate that the endpoint service is unhealthy.'
+      Namespace: 'AWS/PrivateLinkEndpoints'
+      MetricName: RstPacketsReceived
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      TreatMissingData: notBreaching
+      AlarmActions:
+      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
+      Dimensions:
+      - Name: 'Endpoint Type'
+        Value: Interface
+      - Name: 'Service Name'
+        Value: !Sub 'com.amazonaws.${AWS::Region}.${ServiceName}'
+      - Name: 'VPC Endpoint Id'
+        Value: !Ref Endpoint
+      - Name: 'VPC Id'
+        Value: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+  AlarmEndpointBandwidth:
+    Condition: HasAlertTopic
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmActions:
+      - {'Fn::ImportValue': !Sub '${ParentAlertStack}-TopicARN'}
+      AlarmDescription: !Sub 'VPC Interface endpoint ${ServiceName} bandwidth utilization is over 80%'
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Metrics:
+      - Id: bytesProcessed
+        Label: BytesProcessed
+        MetricStat:
+          Metric:
+            Namespace: 'AWS/PrivateLinkEndpoints'
+            MetricName: BytesProcessed # bytes per minute
+            Dimensions:
+            - Name: 'Endpoint Type'
+              Value: Interface
+            - Name: 'Service Name'
+              Value: !Sub 'com.amazonaws.${AWS::Region}.${ServiceName}'
+            - Name: 'VPC Endpoint Id'
+              Value: !Ref Endpoint
+            - Name: 'VPC Id'
+              Value: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+          Period: 60
+          Stat: Sum
+        ReturnData: false
+      - Expression: 'bytesProcessed/60*8/1000/1000/1000' # to Gbit/s
+        Id: 'bandwidth'
+        Label: 'Bandwidth'
+        ReturnData: true
+      Threshold: 80 # hard limit is 100 Gbit/s
+      TreatMissingData: notBreaching
 Outputs:
   TemplateID:
-    Description: 'Template id.'
+    Description: ' template id.'
     Value: 'vpc-endpoint'
-  TemplateVersion:
-    Description: 'Template version.'
-    Value: '__VERSION__'
   StackName:
     Description: 'Stack name.'
     Value: !Sub '${AWS::StackName}'
