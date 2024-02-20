@@ -59,37 +59,41 @@ Parameters:
 Mappings:
   RegionMap:
     'ap-south-1':
-      AMI: 'ami-0ed82e06393f32328'
+      AMI: 'ami-06006e8b065b5bd46'
+    'ap-south-2':
+      AMI: 'ami-083146b93e717832e'
     'eu-west-3':
-      AMI: 'ami-0aa022836aa1a84ce'
+      AMI: 'ami-084a16c4865ab56c6'
     'eu-west-2':
-      AMI: 'ami-00fe444797752bd96'
+      AMI: 'ami-075b165b55797e19d'
     'eu-north-1':
-      AMI: 'ami-07c8a7b55e6b1e6d2'
+      AMI: 'ami-06e56377934537e76'
     'eu-west-1':
-      AMI: 'ami-06558a91dd7f36ac2'
+      AMI: 'ami-03c25e6a40ef25506'
     'ap-northeast-2':
-      AMI: 'ami-08831b9f8088641d3'
+      AMI: 'ami-03a633fd8200146fb'
     'me-south-1':
       AMI: 'ami-0a91b33f1e51eafbb'
     'ap-northeast-1':
-      AMI: 'ami-014061df9d813ea90'
+      AMI: 'ami-04f0680f68f076681'
     'ca-central-1':
-      AMI: 'ami-002f38f85a23ad92c'
+      AMI: 'ami-02944cbf70a82fae5'
     'ap-southeast-1':
-      AMI: 'ami-037e3d0f6fefc2f5a'
+      AMI: 'ami-0b0f138edf421d756'
     'ap-southeast-2':
-      AMI: 'ami-07783c0ae3bb5ad8b'
+      AMI: 'ami-0daef888755f9c098'
     'eu-central-1':
-      AMI: 'ami-0e8ddd432cc6047f6'
+      AMI: 'ami-0fd6dfc993d1322c7'
     'us-east-1':
-      AMI: 'ami-0d8b28f23a8c6709e'
+      AMI: 'ami-01eccbf80522b562b'
     'us-east-2':
-      AMI: 'ami-0d59f7cf5843090c0'
+      AMI: 'ami-01f48e1e4b60cb973'
     'us-west-1':
-      AMI: 'ami-01951e249d893c7ea'
+      AMI: 'ami-003946151dbec5c44'
     'us-west-2':
-      AMI: 'ami-0a8fddfa5a937928e'
+      AMI: 'ami-0ad86651279e2c354'
+    'sa-east-1':
+      AMI: 'ami-0c947c8216a00bbe9'
 Resources:
   VPC:
     Type: AWS::EC2::VPC

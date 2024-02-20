@@ -92,6 +92,8 @@ Mappings:
       AMI: 'ami-04caf1fb1a5bae0c2'
     'us-west-2':
       AMI: 'ami-0b4e422089afb4751'
+    'sa-east-1':
+      AMI: 'ami-08a9c45140558c40a'
 Resources:
   VPC:
     Type: AWS::EC2::VPC
